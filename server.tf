@@ -61,7 +61,7 @@ resource "aws_route_table_association" "k8s_route_table_assoc" {
   route_table_id = aws_route_table.k8s_route_table.id
 }
 
-resource "aws_security_group" "allow_ssh" {
+resource "aws_security_group" "k8s_sg" {
   name        = "durga_ssh"
   description = "Allow SSH inbound traffic"
   vpc_id      = var.existing_vpc_id 
