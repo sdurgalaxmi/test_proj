@@ -124,11 +124,20 @@ output "master_ip" {
   value = aws_instance.master.public_ip
 }
 
+
+
 output "worker_ips" {
   value = aws_instance.worker[*].public_ip
 }
 
+# Create inventory.ini file with worker node IPs
+resource "local_file" "inventory" {
+  content = <<EOT
+[k8s_workers]
+%{ for instance in aws_instance.worker }
+${instance.public_ip}  # Worker Node IP
+%{ endfor }
+EOT
 
-provisioner "remote-exec" {
-    command = "echo The servers IP address is ${aws_instance.worker[*].public_ip} && echo ${aws_instance.worker[*].public_ip} > /root/inv"
-  }
+  filename = "${path.module}/inventory.ini"
+}
