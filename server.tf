@@ -80,6 +80,7 @@ resource "aws_security_group" "k8s_sg" {
     to_port     = 0
     protocol    = "-1"  # All protocols
     cidr_blocks = ["0.0.0.0/0"]  # Allow all outbound traffic
+  }
   
 # Add more ingress rules as necessary for your setup
 
