@@ -126,11 +126,11 @@ output "worker_ips" {
 locals {
   master_ip = aws_instance.k8s_master.private_ip
 
-  worker_ips = join("\n", [for worker in aws_instance.k8s_worker : "${worker.private_ip} ansible_ssh_user=ubuntu"])
+  worker_ips = join("\n", [for worker in aws_instance.k8s_worker : "${worker.private_ip} ansible_ssh_user=ubuntu ansible_ssh_private_key_file=/root/terraform/private_key.pem" ])
   
   inventory_content = <<EOT
 [k8s_master]
-${local.master_ip} ansible_ssh_user=ubuntu
+${local.master_ip} ansible_ssh_user=ubuntu ansible_ssh_private_key_file=/root/terraform/private_key.pem
 
 [k8s_workers]
 ${local.worker_ips}
