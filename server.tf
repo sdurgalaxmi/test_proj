@@ -159,13 +159,33 @@ output "worker_ips" {
 }
 
 # Create inventory.ini file with worker node IPs
+#resource "local_file" "inventory" {
+#  content = <<EOT
+#[k8s_workers]
+#%{ for instance in aws_instance.worker }
+#${instance.public_ip}  # Worker Node IP
+#%{ endfor }
+#EOT
+#
+#  filename = "/root/terraform/inventory.ini"
+#}
+
+# Create inventory.ini file with master and worker node IPs
 resource "local_file" "inventory" {
+  filename = "${path.module}/inventory.ini"
+
   content = <<EOT
+[k8s_master]
+${aws_instance.k8s_master[0].private_ip} ansible_ssh_user=ubuntu
+
 [k8s_workers]
-%{ for instance in aws_instance.worker }
-${instance.public_ip}  # Worker Node IP
-%{ endfor }
 EOT
 
-  filename = "/root/terraform/inventory.ini"
+  # Append worker nodes' IPs
+  dynamic "worker" {
+    for_each = aws_instance.k8s_worker
+    content {
+      inventory += "${worker.value.private_ip} ansible_ssh_user=ubuntu\n"
+    }
+  }
 }
