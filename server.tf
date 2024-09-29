@@ -65,7 +65,8 @@ resource "aws_instance" "master" {
   ami           = "ami-085f9c64a9b75eed5"  # Change to your preferred AMI (e.g., Ubuntu)
   instance_type = "t2.medium"
   subnet_id     = aws_subnet.k8s_subnet.id
-  security_groups = [aws_security_group.k8s_sg.name]
+  security_groups = [aws_security_group.k8s_sg.id]
+  depends_on = [aws_security_group.k8s_sg]
 
   tags = {
     Name = "demo-k8s-master"
@@ -79,7 +80,9 @@ resource "aws_instance" "worker" {
   ami           = "ami-085f9c64a9b75eed5"  # Change to your preferred AMI
   instance_type = "t2.medium"
   subnet_id     = aws_subnet.k8s_subnet.id
-  security_groups = [aws_security_group.k8s_sg.name]
+  security_groups = [aws_security_group.k8s_sg.id]
+
+  depends_on = [aws_security_group.k8s_sg]
 
   tags = {
     Name = "demo-k8s-worker-${count.index}"
