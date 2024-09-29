@@ -160,7 +160,7 @@ output "worker_ips" {
 
 # Create the inventory content
 locals {
-  master_ip = aws_instance.k8s_master[0].private_ip
+  master_ip = aws_instance.k8s_master.private_ip
 
   worker_ips = join("\n", [for worker in aws_instance.k8s_worker : "${worker.private_ip} ansible_ssh_user=ubuntu"])
   
