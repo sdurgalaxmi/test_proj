@@ -152,17 +152,15 @@ output "master_ip" {
   value = aws_instance.k8s_master.public_ip
 }
 
-
-
 output "worker_ips" {
   value = aws_instance.k8s_worker[*].public_ip
 }
 
 # Create the inventory content
 locals {
-  master_ip = aws_instance.k8s_master.private_ip
+  master_ip = aws_instance.k8s_master.public_ip
 
-  worker_ips = join("\n", [for worker in aws_instance.k8s_worker : "${worker.private_ip} ansible_ssh_user=ubuntu"])
+  worker_ips = join("\n", [for worker in aws_instance.k8s_worker : "${worker.public_ip} ansible_ssh_user=ubuntu"])
   
   inventory_content = <<EOT
 [k8s_master]
