@@ -10,7 +10,7 @@
           - curl
           - software-properties-common
         state: present
-        update_cache: yes
+   #     update_cache: yes
 
     - name: Add Docker GPG key
       apt_key:
