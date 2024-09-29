@@ -11,6 +11,13 @@ provider "aws" {
 region = "us-east-2"
 }
 
+provider "tls" {}
+
+# Generate a new SSH key pair
+resource "tls_private_key" "k8s_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
 
 resource "aws_vpc" "k8s_vpc" {
   cidr_block = "10.0.0.0/16"
@@ -117,6 +124,27 @@ resource "aws_instance" "worker" {
     Name = "demo-k8s-worker-${count.index}"
     env = "Production"
     owner = "team2"
+  }
+}
+
+# Create an AWS key pair
+resource "aws_key_pair" "k8s_key" {
+  key_name   = "demo-k8s-key"
+  public_key = tls_private_key.k8s_key.public_key_openssh
+}
+
+# Save the private key locally
+resource "local_file" "private_key" {
+  content  = tls_private_key.k8s_key.private_key_pem
+  filename = "/root/terraform/key.pem"
+}
+
+# Set permissions for the private key
+resource "null_resource" "set_key_permissions" {
+  depends_on = [local_file.private_key]
+
+  provisioner "local-exec" {
+    command = "chmod 400 ${local_file.private_key.filename}"
   }
 }
 
