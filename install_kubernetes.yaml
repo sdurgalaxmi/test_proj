@@ -1,0 +1,104 @@
+- name: Install Latest Docker and Kubernetes with Calico
+  hosts: all
+  become: true
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: latest
+
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add Kubernetes GPG key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: Add Kubernetes APT repository
+      apt_repository:
+        repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+        state: present
+
+    - name: Install Latest Kubernetes packages
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: latest
+
+    - name: Hold Kubernetes packages at current version
+      apt_mark:
+        name: kubelet
+        state: held
+
+    - name: Hold Kubernetes packages at current version
+      apt_mark:
+        name: kubeadm
+        state: held
+
+    - name: Hold Kubernetes packages at current version
+      apt_mark:
+        name: kubectl
+        state: held
+
+    - name: Initialize Kubernetes master
+      command: kubeadm init --pod-network-cidr=192.168.0.0/16
+      when: inventory_hostname == groups['master'][0]
+
+    - name: Create .kube directory
+      file:
+        path: /home/{{ ansible_ssh_user }}/.kube
+        state: directory
+        mode: '0755'
+      when: inventory_hostname == groups['master'][0]
+
+    - name: Copy admin.conf to .kube directory
+      command: >
+        cp /etc/kubernetes/admin.conf /home/{{ ansible_ssh_user }}/.kube/config
+      when: inventory_hostname == groups['master'][0]
+
+    - name: Set kube config ownership
+      file:
+        path: /home/{{ ansible_ssh_user }}/.kube/config
+        owner: "{{ ansible_ssh_user }}"
+        group: "{{ ansible_ssh_user }}"
+        mode: '0644'
+      when: inventory_hostname == groups['master'][0]
+
+    - name: Install Calico CNI
+      command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+      when: inventory_hostname == groups['master'][0]
+
+    - name: Join worker nodes to the cluster
+      command: kubeadm join {{ hostvars[groups['master'][0]]['ansible_host'] }}:6443 --token {{ hostvars[groups['master'][0]]['kubeadm_token'] }} --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['master'][0]]['ca_cert_hash'] }}
+      when: inventory_hostname in groups['worker']
+
+  post_tasks:
+    - name: Show nodes in the cluster
+      command: kubectl get nodes
+      when: inventory_hostname == groups['master'][0]
