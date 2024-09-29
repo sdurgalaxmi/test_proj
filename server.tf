@@ -31,7 +31,7 @@ resource "aws_subnet" "k8s_subnet" {
 }
 
 resource "aws_internet_gateway" "k8s_igw" {
-  vpc_id = aws_vpc.k8s_vpc.id
+  vpc_id = vpc-0b30226ed9787e925
 
   tags = {
     Name = "demo-k8s-igw"
@@ -39,7 +39,7 @@ resource "aws_internet_gateway" "k8s_igw" {
 }
 
 resource "aws_route_table" "k8s_route_table" {
-  vpc_id = aws_vpc.k8s_vpc.id
+  vpc_id = vpc-0b30226ed9787e925
 
   tags = {
     Name = "demo-k8s-rt"
