@@ -114,17 +114,6 @@ resource "aws_instance" "k8s_worker" {
   }
 }
 
-# Create an SSH public key to associate with the EC2 instances
-resource "aws_key_pair" "k8s_ssh_key" {
-  key_name   = "k8s_ssh_key"
-  public_key = tls_private_key.k8s_ssh_key.public_key_openssh
-}
-
-# Output the private key path and instance information
-output "private_key_path" {
-  value = local_file.k8s_private_key.filename
-}
-
 output "master_ip" {
   value = aws_instance.k8s_master.private_ip
 }
