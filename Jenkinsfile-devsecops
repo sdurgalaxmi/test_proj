@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Initialize Terraform') {
+            steps {
+                sh 'terraform init'
+            }
+        }
+
+        stage('Security Testing for Terraform') {
+            steps {
+                // Run tfspec tests
+                sh 'tfsec'
+            }
+        }
+
+        stage('Apply Terraform') {
+            steps {
+                sh 'terraform apply -auto-approve'
+            }
+        }
+
+        stage('Wait for Deployment') {
+            steps {
+                sleep 10
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                sh 'ansible-playbook -i /tmp/inv -u ubuntu -b --become-method sudo php.yaml'
+            }
+        }
+    }
+
+    post {
+        failure {
+            // If any previous stage fails, mark the build as unstable
+            unstable("Security testing or deployment stage failed.")
+        }
+    }
+}
