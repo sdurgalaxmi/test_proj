@@ -19,11 +19,16 @@ resource "tls_private_key" "k8s_ssh_key" {
   rsa_bits  = 2048
 }
 
-resource "aws_subnet" "k8s_subnet" {
-  vpc_id     = vpc-0b30226ed9787e925
-  cidr_block = "10.0.1.0/24"
-  map_public_ip_on_launch = true  # Enable Auto-Assign Public IP
+# Input the existing VPC ID (replace with the actual VPC ID)
+variable "existing_vpc_id" {
+  description = "ID of the existing VPC"
+  default     = "vpc-0b30226ed9787e925"
+}
 
+resource "aws_subnet" "k8s_subnet" {
+  vpc_id     = var.existing_vpc_id
+  cidr_block = "10.0.4.0/24"
+  map_public_ip_on_launch = true  # Enable Auto-Assign Public IP
 
   tags = {
     Name = "demo-k8s-subnet"
@@ -31,7 +36,7 @@ resource "aws_subnet" "k8s_subnet" {
 }
 
 resource "aws_internet_gateway" "k8s_igw" {
-  vpc_id = vpc-0b30226ed9787e925
+  vpc_id = var.existing_vpc_id
 
   tags = {
     Name = "demo-k8s-igw"
@@ -39,7 +44,7 @@ resource "aws_internet_gateway" "k8s_igw" {
 }
 
 resource "aws_route_table" "k8s_route_table" {
-  vpc_id = vpc-0b30226ed9787e925
+  vpc_id = var.existing_vpc_id
 
   tags = {
     Name = "demo-k8s-rt"
@@ -59,7 +64,7 @@ resource "aws_route_table_association" "k8s_route_table_assoc" {
 resource "aws_security_group" "allow_ssh" {
   name        = "durga_ssh"
   description = "Allow SSH inbound traffic"
-  vpc_id      = "vpc-0b30226ed9787e925"
+  vpc_id      = var.existing_vpc_id 
 
   ingress {
     from_port   = 80
