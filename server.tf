@@ -27,7 +27,7 @@ variable "existing_vpc_id" {
 
 resource "aws_subnet" "k8s_subnet" {
   vpc_id     = var.existing_vpc_id
-  cidr_block = "10.0.1.0/24"
+  cidr_block = "51.51.0.0/24"
   map_public_ip_on_launch = true  # Enable Auto-Assign Public IP
 
   tags = {
