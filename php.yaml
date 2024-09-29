@@ -1,0 +1,22 @@
+- hosts: webservers
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+    
+    - name: Install PHP and related packages
+      apt:
+        name:
+          - php
+          - php-cli
+          - php-fpm
+          - php-mysql
+        state: present
+        update_cache: yes
+    
+    - name: Ensure PHP-FPM is running
+      service:
+        name: php7.4-fpm
+        state: started
+        enabled: yes
