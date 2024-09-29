@@ -1,6 +1,7 @@
 - name: Install Latest Docker and Kubernetes with Calico
   hosts: all
-  become: true
+  gather_facts: true
+  become: true  
   tasks:
     - name: Install required packages
       apt:
