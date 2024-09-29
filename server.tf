@@ -172,7 +172,7 @@ output "worker_ips" {
 
 # Create inventory.ini file with master and worker node IPs
 resource "local_file" "inventory" {
-  filename = "${path.module}/inventory.ini"
+  filename = "/root/terraform/inventory.ini"
 
   content = <<EOT
 [k8s_master]
