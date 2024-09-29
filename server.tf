@@ -31,6 +31,32 @@ resource "aws_subnet" "k8s_subnet" {
   }
 }
 
+resource "aws_internet_gateway" "k8s_igw" {
+  vpc_id = aws_vpc.k8s_vpc.id
+
+  tags = {
+    Name = "demo-k8s-igw"
+  }
+}
+
+resource "aws_route_table" "k8s_route_table" {
+  vpc_id = aws_vpc.k8s_vpc.id
+
+  tags = {
+    Name = "demo-k8s-rt"
+  }
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.k8s_igw.id
+  }
+}
+
+resource "aws_route_table_association" "k8s_route_table_assoc" {
+  subnet_id      = aws_subnet.k8s_subnet.id
+  route_table_id = aws_route_table.k8s_route_table.id
+}
+
 resource "aws_security_group" "k8s_sg" {
   vpc_id = aws_vpc.k8s_vpc.id
 
