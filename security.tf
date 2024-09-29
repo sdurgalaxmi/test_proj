@@ -1,5 +1,5 @@
 resource "aws_security_group" "allow_ssh" {
-  name        = "durga_ssh"
+  name        = "demo_ssh"
   description = "Allow SSH inbound traffic"
   vpc_id      = "vpc-0b30226ed9787e925"
 
