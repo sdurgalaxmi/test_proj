@@ -23,6 +23,8 @@ resource "aws_vpc" "k8s_vpc" {
 resource "aws_subnet" "k8s_subnet" {
   vpc_id     = aws_vpc.k8s_vpc.id
   cidr_block = "10.0.1.0/24"
+  map_public_ip_on_launch = true  # Enable Auto-Assign Public IP
+
 
   tags = {
     Name = "demo-k8s-subnet"
@@ -67,6 +69,7 @@ resource "aws_instance" "master" {
   subnet_id     = aws_subnet.k8s_subnet.id
   security_groups = [aws_security_group.k8s_sg.id]
   depends_on = [aws_security_group.k8s_sg]
+  associate_public_ip_address = true  # Ensure public IP is assigned
 
   tags = {
     Name = "demo-k8s-master"
@@ -81,8 +84,8 @@ resource "aws_instance" "worker" {
   instance_type = "t2.medium"
   subnet_id     = aws_subnet.k8s_subnet.id
   security_groups = [aws_security_group.k8s_sg.id]
-
   depends_on = [aws_security_group.k8s_sg]
+  associate_public_ip_address = true  # Ensure public IP is assigned
 
   tags = {
     Name = "demo-k8s-worker-${count.index}"
