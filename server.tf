@@ -7,17 +7,30 @@ terraform {
   }
 }
 
-provider "aws" {
-region = "us-east-2"
-}
-
 provider "tls" {}
 
 # Generate the SSH key pair
-resource "tls_private_key" "k8s_ssh_key" {
+resource "tls_private_key" "ssh_key" {
   algorithm = "RSA"
   rsa_bits  = 2048
 }
+
+resource "local_file" "private_key" {
+  content  = tls_private_key.ssh_key.private_key_pem
+  filename = "/root/terraform/private_key.pem"
+  file_permission = "0600"
+}
+
+resource "local_file" "public_key" {
+  content  = tls_private_key.ssh_key.public_key_openssh
+  filename = "/root/terraform/public_key.pub"
+}
+
+resource "aws_key_pair" "k8s_key" {
+  key_name   = "k8s_ssh_key"
+  public_key = tls_private_key.ssh_key.public_key_openssh
+}
+
 
 # Input the existing VPC ID (replace with the actual VPC ID)
 variable "existing_vpc_id" {
@@ -34,32 +47,6 @@ resource "aws_subnet" "k8s_subnet" {
     Name = "demo-k8s-subnet"
   }
 }
-
-#resource "aws_internet_gateway" "k8s_igw" {
-#  vpc_id = var.existing_vpc_id
-#
- # tags = {
- #   Name = "demo-k8s-igw"
- # }
-#}
-
-#resource "aws_route_table" "k8s_route_table" {
-#  vpc_id = var.existing_vpc_id
-#
- # tags = {
- #   Name = "demo-k8s-rt"
- # }
-
- # route {
-  #  cidr_block = "0.0.0.0/0"
-  #  gateway_id = aws_internet_gateway.k8s_igw.id
- # }
-#}
-
-#resource "aws_route_table_association" "k8s_route_table_assoc" {
- # subnet_id      = aws_subnet.k8s_subnet.id
-#  route_table_id = aws_route_table.k8s_route_table.id
-#}
 
 resource "aws_security_group" "k8s_sg" {
   name        = "durga_ssh"
@@ -94,16 +81,6 @@ resource "aws_security_group" "k8s_sg" {
   }
 } 
 
-
-# Store the private key locally on the base node
-resource "local_file" "k8s_private_key" {
-  filename = "/root/terraform/k8s_ssh_key.pem"
-  content  = tls_private_key.k8s_ssh_key.private_key_pem
-
-  # Set proper file permissions for the private key
-  file_permission = "0600"
-}
-
 resource "aws_instance" "k8s_master" {
   ami           = "ami-085f9c64a9b75eed5"  # Change to your preferred AMI (e.g., Ubuntu)
   instance_type = "t2.medium"
@@ -111,6 +88,7 @@ resource "aws_instance" "k8s_master" {
   security_groups = [aws_security_group.k8s_sg.id]
   depends_on = [aws_security_group.k8s_sg]
   associate_public_ip_address = true  # Ensure public IP is assigned
+  key_name      = aws_key_pair.k8s_key.key_name
 
   tags = {
     Name = "demo-k8s-master"
@@ -127,6 +105,7 @@ resource "aws_instance" "k8s_worker" {
   security_groups = [aws_security_group.k8s_sg.id]
   depends_on = [aws_security_group.k8s_sg]
   associate_public_ip_address = true  # Ensure public IP is assigned
+  key_name      = aws_key_pair.k8s_key.key_name
 
   tags = {
     Name = "demo-k8s-worker-${count.index}"
