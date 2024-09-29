@@ -149,13 +149,13 @@ resource "null_resource" "set_key_permissions" {
 }
 
 output "master_ip" {
-  value = aws_instance.master.public_ip
+  value = aws_instance.k8s_master.public_ip
 }
 
 
 
 output "worker_ips" {
-  value = aws_instance.worker[*].public_ip
+  value = aws_instance.k8s_worker[*].public_ip
 }
 
 # Create the inventory content
