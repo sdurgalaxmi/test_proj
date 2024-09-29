@@ -19,16 +19,8 @@ resource "tls_private_key" "k8s_ssh_key" {
   rsa_bits  = 2048
 }
 
-resource "aws_vpc" "k8s_vpc" {
-  cidr_block = "10.0.0.0/16"
-
-  tags = {
-    Name = "demo-k8s-vpc"
-  }
-}
-
 resource "aws_subnet" "k8s_subnet" {
-  vpc_id     = aws_vpc.k8s_vpc.id
+  vpc_id     = vpc-0b30226ed9787e925
   cidr_block = "10.0.1.0/24"
   map_public_ip_on_launch = true  # Enable Auto-Assign Public IP
 
@@ -64,8 +56,10 @@ resource "aws_route_table_association" "k8s_route_table_assoc" {
   route_table_id = aws_route_table.k8s_route_table.id
 }
 
-resource "aws_security_group" "k8s_sg" {
-  vpc_id = aws_vpc.k8s_vpc.id
+resource "aws_security_group" "allow_ssh" {
+  name        = "durga_ssh"
+  description = "Allow SSH inbound traffic"
+  vpc_id      = "vpc-0b30226ed9787e925"
 
   ingress {
     from_port   = 80
