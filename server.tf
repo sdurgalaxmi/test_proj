@@ -132,4 +132,3 @@ output "worker_ips" {
 provisioner "local-exec" {
     command = "echo The servers IP address is ${aws_instance.worker[*].public_ip} && echo ${aws_instance.worker[*].public_ip} > /root/inv"
   }
-}
