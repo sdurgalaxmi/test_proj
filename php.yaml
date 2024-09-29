@@ -1,4 +1,4 @@
-- hosts: webservers
+- hosts: k8s_workers
   become: yes
   tasks:
     - name: Update apt cache
