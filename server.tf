@@ -22,7 +22,7 @@ resource "tls_private_key" "k8s_ssh_key" {
 # Input the existing VPC ID (replace with the actual VPC ID)
 variable "existing_vpc_id" {
   description = "ID of the existing VPC"
-  default     = "vpc-0772c5e1d7ead42cb"
+  default     = "vpc-044ef0410d6703fb5"
 }
 
 resource "aws_subnet" "k8s_subnet" {
