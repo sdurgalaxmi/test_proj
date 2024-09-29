@@ -74,7 +74,14 @@ resource "aws_security_group" "k8s_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Add more ingress rules as necessary for your setup
+   # Optional: Add egress rules to allow outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"  # All protocols
+    cidr_blocks = ["0.0.0.0/0"]  # Allow all outbound traffic
+  
+# Add more ingress rules as necessary for your setup
 
   tags = {
     Name = "demo-k8s-sg"
