@@ -10,17 +10,85 @@ terraform {
 provider "aws" {
 region = "us-east-2"
 }
-resource "aws_instance" "myawsserver" {
-  ami = "ami-0ba8711e0e1da2a52"
-  instance_type = "t2.micro"
-  key_name = "durga-import"
+
+resource "aws_vpc" "k8s_vpc" {
+  cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "durga-DevOps-batch-server"
-    env = "Production"
-    owner = "Durga"
+    Name = "k8s-vpc"
   }
-  provisioner "local-exec" {
-    command = "echo The servers IP address is ${self.public_ip} && echo ${self.public_ip} > /tmp/inv"
+}
+
+
+resource "aws_subnet" "k8s_subnet" {
+  vpc_id     = aws_vpc.k8s_vpc.id
+  cidr_block = "10.0.1.0/24"
+
+  tags = {
+    Name = "k8s-subnet"
   }
+}
+
+resource "aws_security_group" "k8s_sg" {
+  vpc_id = aws_vpc.k8s_vpc.id
+
+
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # http
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Restrict for security in production - https
+  }
+
+  ingress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Add more ingress rules as necessary for your setup
+
+  tags = {
+    Name = "demo-k8s-sg"
+  }
+}
+
+resource "aws_instance" "master" {
+  ami           = "ami-0c55b159cbfafe1f0"  # Change to your preferred AMI (e.g., Ubuntu)
+  instance_type = "t2.medium"
+  subnet_id     = aws_subnet.k8s_subnet.id
+  security_groups = [aws_security_group.k8s_sg.name]
+
+  tags = {
+    Name = "demo-k8s-master"
+  }
+}
+
+resource "aws_instance" "worker" {
+  count         = 2
+  ami           = "ami-0c55b159cbfafe1f0"  # Change to your preferred AMI
+  instance_type = "t2.medium"
+  subnet_id     = aws_subnet.k8s_subnet.id
+  security_groups = [aws_security_group.k8s_sg.name]
+
+  tags = {
+    Name = "demo-k8s-worker-${count.index}"
+  }
+}
+
+output "master_ip" {
+  value = aws_instance.master.public_ip
+}
+
+output "worker_ips" {
+  value = aws_instance.worker[*].public_ip
 }
