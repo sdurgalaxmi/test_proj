@@ -96,7 +96,7 @@ resource "aws_security_group" "k8s_sg" {
 } 
 
 
-resource "aws_instance" "master" {
+resource "aws_instance" "k8s_master" {
   ami           = "ami-085f9c64a9b75eed5"  # Change to your preferred AMI (e.g., Ubuntu)
   instance_type = "t2.medium"
   subnet_id     = aws_subnet.k8s_subnet.id
@@ -111,7 +111,7 @@ resource "aws_instance" "master" {
   }
 }
 
-resource "aws_instance" "worker" {
+resource "aws_instance" "k8s_worker" {
   count         = 2
   ami           = "ami-085f9c64a9b75eed5"  # Change to your preferred AMI
   instance_type = "t2.medium"
