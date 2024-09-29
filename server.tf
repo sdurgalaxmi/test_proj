@@ -165,10 +165,10 @@ locals {
   worker_ips = join("\n", [for worker in aws_instance.k8s_worker : "${worker.private_ip} ansible_ssh_user=ubuntu"])
   
   inventory_content = <<EOT
-[master]
+[k8s_master]
 ${local.master_ip} ansible_ssh_user=ubuntu
 
-[worker]
+[k8s_workers]
 ${local.worker_ips}
 EOT
 }
