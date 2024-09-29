@@ -139,5 +139,5 @@ ${instance.public_ip}  # Worker Node IP
 %{ endfor }
 EOT
 
-  filename = "${path.module}/inventory.ini"
+  filename = "/root/terraform/inventory.ini"
 }
