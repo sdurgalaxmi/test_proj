@@ -13,10 +13,10 @@ region = "us-east-2"
 
 provider "tls" {}
 
-# Generate a new SSH key pair
-resource "tls_private_key" "k8s_key" {
+# Generate the SSH key pair
+resource "tls_private_key" "k8s_ssh_key" {
   algorithm = "RSA"
-  rsa_bits  = 4096
+  rsa_bits  = 2048
 }
 
 resource "aws_vpc" "k8s_vpc" {
@@ -96,6 +96,15 @@ resource "aws_security_group" "k8s_sg" {
 } 
 
 
+# Store the private key locally on the base node
+resource "local_file" "k8s_private_key" {
+  filename = "/root/terraform/k8s_ssh_key.pem"
+  content  = tls_private_key.k8s_ssh_key.private_key_pem
+
+  # Set proper file permissions for the private key
+  file_permission = "0600"
+}
+
 resource "aws_instance" "k8s_master" {
   ami           = "ami-085f9c64a9b75eed5"  # Change to your preferred AMI (e.g., Ubuntu)
   instance_type = "t2.medium"
@@ -127,25 +136,15 @@ resource "aws_instance" "k8s_worker" {
   }
 }
 
-# Create an AWS key pair
-resource "aws_key_pair" "k8s_key" {
-  key_name   = "demo-k8s-key"
-  public_key = tls_private_key.k8s_key.public_key_openssh
+# Create an SSH public key to associate with the EC2 instances
+resource "aws_key_pair" "k8s_ssh_key" {
+  key_name   = "k8s_ssh_key"
+  public_key = tls_private_key.k8s_ssh_key.public_key_openssh
 }
 
-# Save the private key locally
-resource "local_file" "private_key" {
-  content  = tls_private_key.k8s_key.private_key_pem
-  filename = "/root/terraform/key.pem"
-}
-
-# Set permissions for the private key
-resource "null_resource" "set_key_permissions" {
-  depends_on = [local_file.private_key]
-
-  provisioner "local-exec" {
-    command = "chmod 400 ${local_file.private_key.filename}"
-  }
+# Output the private key path and instance information
+output "private_key_path" {
+  value = local_file.k8s_private_key.filename
 }
 
 output "master_ip" {
