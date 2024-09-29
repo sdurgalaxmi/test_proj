@@ -22,12 +22,12 @@ resource "tls_private_key" "k8s_ssh_key" {
 # Input the existing VPC ID (replace with the actual VPC ID)
 variable "existing_vpc_id" {
   description = "ID of the existing VPC"
-  default     = "vpc-0b30226ed9787e925"
+  default     = "vpc-0772c5e1d7ead42cb"
 }
 
 resource "aws_subnet" "k8s_subnet" {
   vpc_id     = var.existing_vpc_id
-  cidr_block = "51.51.4.0/24"
+  cidr_block = "10.0.1.0/24"
   map_public_ip_on_launch = true  # Enable Auto-Assign Public IP
 
   tags = {
