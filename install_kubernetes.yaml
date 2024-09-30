@@ -15,19 +15,17 @@
     - name: Update the apt cache
       apt:
         update_cache: yes  
-        
+
     - name: Add Docker GPG key
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+      ansible.builtin.command:
+        cmd: "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg"
 
     - name: Add Docker APT repository
       apt_repository:
-        #repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_codename }} stable"
-        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable"
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu noble stable"
         state: present
 
-    - name: Install Docker
+         - name: Install Docker
       apt:
         name: docker-ce
         state: latest
@@ -45,9 +43,19 @@
 
     - name: Add Kubernetes APT repository
       apt_repository:
-        repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+        repo: "deb https://apt.kubernetes.io/ kubernetes-jammy main"
         state: present
 
+    - name: Disable security check for unsigned repositories
+      lineinfile:
+        path: /etc/apt/apt.conf.d/99verify-peer
+        line: 'Acquire::https::Verify-Peer "false";'
+        create: yes
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        
     - name: Install Latest Kubernetes packages
       apt:
         name:
