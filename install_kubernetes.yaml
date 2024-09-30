@@ -1,8 +1,8 @@
 - name: Install Latest Docker and Kubernetes with Calico
   hosts: all
   gather_facts: true
-  become: true 
-   tasks:
+  become: true  
+  tasks:
     - name: Install required packages
       apt:
         name:
@@ -11,8 +11,8 @@
           - curl
           - software-properties-common
         state: present
- 
-     - name: Update apt repository
+   
+    - name: Update the apt cache
       apt:
         update_cache: yes
 
