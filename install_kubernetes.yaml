@@ -30,7 +30,8 @@
     
 
     - name: Add Kubernetes GPG key
-      command: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+      #command: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+      shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
       
     - name: Add Kubernetes APT repository
       lineinfile:
