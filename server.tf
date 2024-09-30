@@ -108,7 +108,7 @@ resource "aws_instance" "k8s_master" {
 resource "aws_instance" "k8s_worker" {
   count         = 2
   ami           = "ami-085f9c64a9b75eed5"  # Change to your preferred AMI
-  instance_type = "t2.medium"
+  instance_type = "t2.micro"
   subnet_id     = aws_subnet.k8s_subnet.id
   security_groups = [aws_security_group.k8s_sg.id]
   depends_on = [aws_security_group.k8s_sg]
