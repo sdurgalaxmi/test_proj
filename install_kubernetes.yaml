@@ -1,9 +1,18 @@
 - name: Install Latest Docker and Kubernetes with Calico
   hosts: all
   gather_facts: true
-  become: true  
-    tasks:
-    - name: Update apt repository
+  become: true 
+   tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+ 
+     - name: Update apt repository
       apt:
         update_cache: yes
 
@@ -18,14 +27,7 @@
         enabled: yes
         state: started
 
-    - name: Install prerequisites for Kubernetes
-      apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - software-properties-common
-        state: present
+    
 
     - name: Add Kubernetes GPG key
       command: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
