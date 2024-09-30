@@ -36,8 +36,9 @@
     - name: Add Kubernetes APT repository
       lineinfile:
         dest: /etc/apt/sources.list.d/kubernetes.list
-        line: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+        line: "deb https://apt.kubernetes.io/ kubernetes-xenial main" 
         state: present
+        #shell : echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
     - name: Update apt repository again
       apt:
