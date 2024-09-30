@@ -12,11 +12,7 @@
           - software-properties-common
         state: present
    
-    - name: Update the apt cache
-      apt:
-        update_cache: yes  
-
-    - name: Add Docker GPG key
+   - name: Add Docker GPG key
       ansible.builtin.command:
         cmd: "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg"
 
@@ -25,7 +21,7 @@
         repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu noble stable"
         state: present
 
-         - name: Install Docker
+    - name: Install Docker
       apt:
         name: docker-ce
         state: latest
