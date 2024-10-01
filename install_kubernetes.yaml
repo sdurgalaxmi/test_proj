@@ -31,7 +31,9 @@
 
     - name: Add Kubernetes GPG key
       #command: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-      shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+      shell:sudo mkdir -p -m 755 /etc/apt/keyrings
+      shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      #shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
       
    # - name: Add Kubernetes APT repository
      # lineinfile:
@@ -41,7 +43,8 @@
       #  shell : echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
     - name: Add Kubernetes repository to sources list
-      shell: echo "deb [trusted=yes] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+      #shell: echo "deb [trusted=yes] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+      shell: echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
     - name: Update apt repository again
       apt:
