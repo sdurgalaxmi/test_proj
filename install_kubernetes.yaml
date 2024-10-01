@@ -73,7 +73,7 @@
             path: ~/.kube
             state: directory
             mode: '0755'
-            when: inventory_hostname == groups['k8s_master'][0]
+          when: inventory_hostname == groups['k8s_master'][0]
 
 
         - name: Copy admin.conf to .kube/config
