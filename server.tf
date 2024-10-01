@@ -140,7 +140,7 @@ locals {
 [k8s_master]
 ${local.master_ip} ansible_ssh_user=ubuntu ansible_ssh_private_key_file=/root/terraform/private_key.pem
 
-[k8s_workers]
+[k8s_worker]
 ${local.worker_ips}
 EOT
 }
