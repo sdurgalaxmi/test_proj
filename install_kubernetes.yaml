@@ -76,11 +76,11 @@
 
         - name: Copy admin.conf to .kube/config
           command: cp -i /etc/kubernetes/admin.conf ~/.kube/config
-          args:
-            removes: ~/.kube/config
+         # args:
+         #   removes: ~/.kube/config
 
         - name: Change ownership of .kube/config
-          command: chown $(id -u):$(id -g) ~/.kube/config
+          shell: chown $(id -u):$(id -g) ~/.kube/config
 
     - name: Install Calico Pod Network Add-On
       command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
