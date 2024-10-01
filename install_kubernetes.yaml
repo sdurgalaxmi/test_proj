@@ -63,7 +63,7 @@
 
     - name: Initialize the Kubernetes master
       command: kubeadm init --pod-network-cidr=192.168.0.0/16
-      when: inventory_hostname == groups['master'][0]
+      when: inventory_hostname == groups['k8s_master'][0]
 
 
     - name: Set up kubectl for the regular user
@@ -84,13 +84,13 @@
 
     - name: Install Calico Pod Network Add-On
       command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
-      when: inventory_hostname == groups['master'][0]
+      when: inventory_hostname == groups['k8s_master'][0]
 
     - name: Join worker nodes to the cluster
-      command: kubeadm join {{ hostvars[groups['master'][0]]['ansible_host'] }}:6443 --token {{ hostvars[groups['master'][0]]['kubeadm_token'] }} --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['master'][0]]['ca_cert_hash'] }}
-      when: inventory_hostname in groups['worker']
+      command: kubeadm join {{ hostvars[groups['k8s_master'][0]]['ansible_host'] }}:6443 --token {{ hostvars[groups['master'][0]]['kubeadm_token'] }} --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['master'][0]]['ca_cert_hash'] }}
+      when: inventory_hostname in groups['k8s_workers']
 
   post_tasks:
     - name: Show nodes in the cluster
       command: kubectl get nodes
-      when: inventory_hostname == groups['master'][0]
+      when: inventory_hostname == groups['k8s_master'][0]
