@@ -31,7 +31,7 @@
 
     - name: Add Kubernetes GPG key
       #command: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-      shell:sudo mkdir -p -m 755 /etc/apt/keyrings
+      shell: sudo mkdir -p -m 755 /etc/apt/keyrings
       shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
       #shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
       
