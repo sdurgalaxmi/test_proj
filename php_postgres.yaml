@@ -1,0 +1,128 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard # Update this based on your environment's storage class
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: php-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: standard # Update this as per your setup
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: default
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15.4
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: mydemo
+            - name: POSTGRES_USER
+              value: mydemouser
+            - name: POSTGRES_PASSWORD
+              value: testdemopass
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-storage
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-service
+  namespace: default
+spec:
+  selector:
+    app: php-app
+  ports:
+    - port: 80
+  type: NodePort
+  nodePort: 30080  # NodePort to expose PHP service
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-app
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: php-app
+  template:
+    metadata:
+      labels:
+        app: php-app
+    spec:
+      containers:
+        - name: php-app
+          image: php:8.1-apache
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: php-storage
+          env:
+            - name: POSTGRES_DB
+              value: mydemo
+            - name: POSTGRES_USER
+              value: mydemouser
+            - name: POSTGRES_PASSWORD
+              value: testdemopass
+            - name: POSTGRES_HOST
+              value: postgres  # Refers to the PostgreSQL service
+      volumes:
+        - name: php-storage
+          persistentVolumeClaim:
+            claimName: php-pvc
