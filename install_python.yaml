@@ -1,5 +1,6 @@
 - name: Install required Python libraries
   hosts: all
+  become: yes
   tasks:
     - name: Ensure pip3 is installed (Ubuntu/Debian)
       apt:
