@@ -1,5 +1,6 @@
 - name: Install ArgoCD on Kubernetes Master
   hosts: k8s_master
+  become: yes # Use sudo to install packages
   tasks:  
    
     - name: Create namespace for ArgoCD
@@ -8,6 +9,7 @@
         api_version: v1
         kind: Namespace
         state: present
+        kubeconfig: ~/.kube/config 
         
     - name: Install ArgoCD components
       kubernetes.core.k8s:
