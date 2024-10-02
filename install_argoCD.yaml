@@ -1,0 +1,78 @@
+- name: Install ArgoCD on Kubernetes Master
+  hosts: k8s_master
+  tasks:
+    - name: Create namespace for ArgoCD
+      kubernetes.core.k8s:
+        name: argocd
+        api_version: v1
+        kind: Namespace
+        state: present
+        
+    - name: Install ArgoCD components
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: argocd-server
+            namespace: argocd
+          spec:
+            replicas: 2  # Set to 2 for high availability and load balancing
+            selector:
+              matchLabels:
+                app: argocd-server
+            template:
+              metadata:
+                labels:
+                  app: argocd-server
+              spec:
+                containers:
+                  - name: argocd-server
+                    image: argoproj/argocd:v2.5.0  # Change version as needed
+                    ports:
+                      - containerPort: 8081
+                    args:
+                      - server
+                      - --staticassets
+                      - /shared/applications
+                      
+    - name: Expose ArgoCD server
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: argocd-server
+            namespace: argocd
+          spec:
+            type: NodePort  # Changed from LoadBalancer to NodePort
+            ports:
+              - port: 80
+                targetPort: 8081
+                nodePort: 32080  # Specify the NodePort or let Kubernetes assign one automatically
+            selector:
+              app: argocd-server
+              
+    - name: Wait for ArgoCD server to be ready
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: argocd
+        name: argocd-server
+      register: deployment_info
+      until: deployment_info.resources[0].status.readyReplicas == 1
+      retries: 10
+      delay: 5
+      
+    - name: Get initial admin password
+      kubernetes.core.k8s_exec:
+        namespace: argocd
+        pod: "{{ item }}"
+        command: "cat /app/config/argocd-secret | grep 'admin.password' | cut -d' ' -f2"
+      register: admin_password
+      with_items: "{{ lookup('kubernetes.core.k8s', 'pods', namespace='argocd') }}"
+      
+    - name: Display ArgoCD initial admin password
+      debug:
+        msg: "ArgoCD initial admin password is: {{ admin_password.stdout }}"
