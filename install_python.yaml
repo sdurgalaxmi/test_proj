@@ -16,6 +16,6 @@
 
     - name: Ensure kubernetes Python library is installed
       pip:
-        name: kubernetes
+        name: python3-kubernetes
         state: present
         executable: pip3
