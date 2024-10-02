@@ -64,7 +64,8 @@
         namespace: argocd
         name: argocd-server
       register: deployment_info
-      until: deployment_info.resources[0].status.readyReplicas == 2
+      #until: deployment_info.resources[0].status.readyReplicas == 2
+      until: deployment_info.resources[0].status is defined and deployment_info.resources[0].status.readyReplicas == 2
       retries: 10
       delay: 5
       
