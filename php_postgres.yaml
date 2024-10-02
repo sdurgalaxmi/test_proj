@@ -76,18 +76,33 @@ spec:
             claimName: postgres-pvc
 
 ---
+#apiVersion: v1
+#kind: Service
+#metadata:
+ # name: php-service
+#  namespace: default
+#spec:
+ # selector:
+  #  app: php-app
+ # ports:
+  #  - port: 80
+#  type: NodePort
+#  nodePort: 30080  # NodePort to expose PHP service
+
+---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: php-service
-  namespace: default
 spec:
-  selector:
-    app: php-app
+  type: NodePort  # or use ClusterIP/LoadBalancer if appropriate
   ports:
     - port: 80
-  type: NodePort
-  nodePort: 30080  # NodePort to expose PHP service
+      targetPort: 8080
+      nodePort: 30080  # Remove this if not needed
+  selector:
+    app: php-app
 
 ---
 apiVersion: apps/v1
