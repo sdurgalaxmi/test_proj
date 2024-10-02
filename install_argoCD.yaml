@@ -1,4 +1,4 @@
-- name: Install ArgoCD on Kubernetes
+- name: Install ArgoCD on Kubernetes Master
   hosts: k8s_master
   tasks:
     - name: Create namespace for ArgoCD
@@ -7,6 +7,7 @@
         api_version: v1
         kind: Namespace
         state: present
+        
     - name: Install ArgoCD components
       kubernetes.core.k8s:
         state: present
@@ -30,11 +31,12 @@
                   - name: argocd-server
                     image: argoproj/argocd:v2.5.0  # Change version as needed
                     ports:
-                      - containerPort: 8080
+                      - containerPort: 8081
                     args:
                       - server
                       - --staticassets
                       - /shared/applications
+                      
     - name: Expose ArgoCD server
       kubernetes.core.k8s:
         state: present
@@ -45,12 +47,14 @@
             name: argocd-server
             namespace: argocd
           spec:
-            type: LoadBalancer  # Change to NodePort or ClusterIP as needed
+            type: NodePort  # Changed from LoadBalancer to NodePort
             ports:
               - port: 80
-                targetPort: 8080
+                targetPort: 8081
+                nodePort: 32080  # Specify the NodePort or let Kubernetes assign one automatically
             selector:
               app: argocd-server
+              
     - name: Wait for ArgoCD server to be ready
       kubernetes.core.k8s_info:
         kind: Deployment
@@ -60,6 +64,7 @@
       until: deployment_info.resources[0].status.readyReplicas == 1
       retries: 10
       delay: 5
+      
     - name: Get initial admin password
       kubernetes.core.k8s_exec:
         namespace: argocd
@@ -67,6 +72,7 @@
         command: "cat /app/config/argocd-secret | grep 'admin.password' | cut -d' ' -f2"
       register: admin_password
       with_items: "{{ lookup('kubernetes.core.k8s', 'pods', namespace='argocd') }}"
+      
     - name: Display ArgoCD initial admin password
       debug:
         msg: "ArgoCD initial admin password is: {{ admin_password.stdout }}"
