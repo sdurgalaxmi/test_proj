@@ -1,0 +1,35 @@
+- name: Install Python pip3 and Kubernetes library
+  hosts: all
+  become: yes  # Use sudo to install packages
+  tasks:
+    - name: Update apt cache (Ubuntu/Debian)
+      apt:
+        update_cache: yes
+      when: ansible_distribution in ["Ubuntu", "Debian"]
+
+    - name: Install python3-pip (Ubuntu/Debian)
+      apt:
+        name: python3-pip
+        state: present
+      when: ansible_distribution in ["Ubuntu", "Debian"]
+
+    - name: Install python3-pip (CentOS/RedHat)
+      yum:
+        name: python3-pip
+        state: present
+      when: ansible_distribution in ["CentOS", "RedHat"]
+
+    - name: Ensure python3-venv is installed (Ubuntu/Debian)
+      apt:
+        name: python3-venv
+        state: present
+        update_cache: yes
+      when: ansible_distribution in ["Ubuntu", "Debian"]
+
+    - name: Create a virtual environment
+      command: python3 -m venv /opt/myenv
+      args:
+        creates: /opt/myenv
+
+    - name: Install kubernetes library in the virtual environment
+      command: /opt/myenv/bin/pip install kubernetes
