@@ -98,6 +98,10 @@ resource "aws_instance" "k8s_master" {
   associate_public_ip_address = true  # Ensure public IP is assigned
   key_name      = aws_key_pair.k8s_key.key_name
 
+  root_block_device {
+    volume_size = 20  # Increase the size to your desired size in GiB
+    volume_type = "gp2"  # You can specify the volume type as needed
+
   tags = {
     Name = "demo-k8s-master"
     env = "Production"
