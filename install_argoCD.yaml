@@ -5,9 +5,9 @@
   tasks:
     - name: Ensure kubernetes Python library is installed
         pip:
-        name: kubernetes
-        state: present
-        executable: pip3
+          name: kubernetes
+          state: present
+          executable: pip3
   
     - name: Create namespace for ArgoCD
       kubernetes.core.k8s:
