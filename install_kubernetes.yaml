@@ -28,36 +28,23 @@
         state: started
 
     - name: Download cri-dockerd
-      shell: |
-        wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.0/cri-dockerd_0.3.0_amd64.deb
+      shell: wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.14/cri-dockerd-0.3.14.amd64.tgz
+      shell: tar -xvf cri-dockerd-0.3.14.amd64.tgz
+      shell: cd cri-dockerd
+      shell: sudo install -o root -g root -m 0755 cri-dockerd /usr/local/bin/cri-dockerd
       args:
-        chdir: /tmp
+        chdir: /root
 
-    - name: Install cri-dockerd package
-      apt:
-        deb: /tmp/cri-dockerd_0.3.0_amd64.deb
-
-    - name: Configure cri-dockerd service
-      copy:
-        content: |
-          [Unit]
-          Description=cri-dockerd
-          Documentation=https://github.com/Mirantis/cri-dockerd
-          After=docker.service
-
-          [Service]
-          ExecStart=/usr/bin/cri-dockerd
-          Restart=always
-          RestartSec=10
-          ExecStopPost=/bin/sh -c "pkill -9 -f 'dockerd'"
-          ExecStop=/bin/sh -c "pkill -15 -f 'dockerd'"
-
-          [Install]
-          WantedBy=multi-user.target
-        dest: /etc/systemd/system/cri-dockerd.service
-        owner: root
-        group: root
-        mode: '0644'
+    - name: Download and set up cri-dockerd systemd service
+      shell: cd ..
+      shell: wget https://github.com/Mirantis/cri-dockerd/archive/refs/tags/v0.3.14.tar.gz
+      shell: tar -xvf v0.3.14.tar.gz
+      shell: cd cri-dockerd-0.3.14
+      shell: sudo cp packaging/systemd/* /etc/systemd/system
+      shell: sudo sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd/system/cri-docker.service
+      args:
+        chdir: /root
+        
 
     - name: Reload systemd
       command: systemctl daemon-reload
