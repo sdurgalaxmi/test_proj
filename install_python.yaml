@@ -15,8 +15,16 @@
         state: present
       when: ansible_distribution in ["CentOS", "RedHat"]
 
-    - name: Ensure kubernetes Python library is installed
-      pip:
-        name: python3-kubernetes
+    - name: Ensure pipx is installed
+      apt:
+        name: pipx
         state: present
-        executable: pip3
+
+    - name: Install kubernetes library using pipx
+      command: pipx install kubernetes
+
+  #  - name: Ensure kubernetes Python library is installed
+  #    pip:
+  #      name: python3-kubernetes
+  #      state: present
+  #      executable: pip3
