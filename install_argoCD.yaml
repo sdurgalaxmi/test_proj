@@ -21,7 +21,7 @@
             name: argocd-server
             namespace: argocd
           spec:
-            replicas: 2  # Set to 2 for high availability and load balancing
+            replicas: 1  # Set to 2 for high availability and load balancing
             selector:
               matchLabels:
                 app: argocd-server
@@ -65,7 +65,7 @@
         name: argocd-server
       register: deployment_info
       #until: deployment_info.resources[0].status.readyReplicas == 2
-      until: deployment_info.resources[0].status is defined and deployment_info.resources[0].status.readyReplicas == 2
+      until: deployment_info.resources[0].status is defined and deployment_info.resources[0].status.readyReplicas == 1
       retries: 10
       delay: 5
       
