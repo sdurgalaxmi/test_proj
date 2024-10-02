@@ -1,5 +1,7 @@
 - name: Install ArgoCD on Kubernetes Master
   hosts: k8s_master
+  vars:
+    ansible_python_interpreter: /usr/bin/python3  # Ensure the correct interpreter is used
   tasks:
     - name: Create namespace for ArgoCD
       kubernetes.core.k8s:
