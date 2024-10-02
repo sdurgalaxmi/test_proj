@@ -1,0 +1,21 @@
+- name: Install required Python libraries
+  hosts: all
+  tasks:
+    - name: Ensure pip3 is installed (Ubuntu/Debian)
+      apt:
+        name: python3-pip
+        state: present
+        update_cache: yes
+      when: ansible_distribution in ["Ubuntu", "Debian"]
+
+    - name: Ensure pip3 is installed (CentOS/RedHat)
+      yum:
+        name: python3-pip
+        state: present
+      when: ansible_distribution in ["CentOS", "RedHat"]
+
+    - name: Ensure kubernetes Python library is installed
+      pip:
+        name: kubernetes
+        state: present
+        executable: pip3
