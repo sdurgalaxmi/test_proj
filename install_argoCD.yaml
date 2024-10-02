@@ -3,6 +3,12 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3  # Ensure the correct interpreter is used
   tasks:
+    - name: Ensure kubernetes Python library is installed
+        pip:
+        name: kubernetes
+        state: present
+        executable: pip3
+  
     - name: Create namespace for ArgoCD
       kubernetes.core.k8s:
         name: argocd
