@@ -9,7 +9,7 @@
         api_version: v1
         kind: Namespace
         state: present
-        kubeconfig: ~/.kube/config 
+        kubeconfig: /root/.kube/config 
         
     - name: Install ArgoCD components
       kubernetes.core.k8s:
