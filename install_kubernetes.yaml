@@ -27,23 +27,54 @@
         enabled: yes
         state: started
 
+    - name: Download cri-dockerd
+      shell: |
+        wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.0/cri-dockerd_0.3.0_amd64.deb
+      args:
+        chdir: /tmp
+
+    - name: Install cri-dockerd package
+      apt:
+        deb: /tmp/cri-dockerd_0.3.0_amd64.deb
+
+    - name: Configure cri-dockerd service
+      copy:
+        content: |
+          [Unit]
+          Description=cri-dockerd
+          Documentation=https://github.com/Mirantis/cri-dockerd
+          After=docker.service
+
+          [Service]
+          ExecStart=/usr/bin/cri-dockerd
+          Restart=always
+          RestartSec=10
+          ExecStopPost=/bin/sh -c "pkill -9 -f 'dockerd'"
+          ExecStop=/bin/sh -c "pkill -15 -f 'dockerd'"
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/cri-dockerd.service
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reload systemd
+      command: systemctl daemon-reload
+
+    - name: Enable and start cri-dockerd service
+      systemd:
+        name: cri-dockerd
+        enabled: yes
+        state: started
+
     
 
     - name: Add Kubernetes GPG key
-      #command: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
       shell: sudo mkdir -p -m 755 /etc/apt/keyrings
       shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-      #shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-      
-   # - name: Add Kubernetes APT repository
-     # lineinfile:
-      #  path: /etc/apt/sources.list.d/kubernetes.list
-      #  line: "deb https://apt.kubernetes.io/ kubernetes-xenial main" 
-      #  state: present
-      #  shell : echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-
+            
     - name: Add Kubernetes repository to sources list
-      #shell: echo "deb [trusted=yes] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
       shell: echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
     - name: Update apt repository again
@@ -60,10 +91,39 @@
 
     - name: Hold Kubernetes components at current version
       command: apt-mark hold kubelet kubeadm kubectl
+    
+    - name: Enable net.bridge.bridge-nf-call-iptables
+      command: sysctl -w net.bridge.bridge-nf-call-iptables=1
 
-    - name: Initialize the Kubernetes master
-      command: kubeadm init --pod-network-cidr=192.168.0.0/16
+    - name: Create kubeadm configuration file
+      copy:
+        content: |
+          apiVersion: kubeadm.k8s.io/v1beta3
+          kind: InitConfiguration
+          localAPIEndpoint:
+            advertiseAddress: "{{ hostvars[groups['k8s_master'][0]].ansible_host }}"
+            bindPort: 6443
+          nodeRegistration:
+            criSocket: unix:///var/run/cri-dockerd.sock
+          ---
+          apiVersion: kubeadm.k8s.io/v1beta3
+          kind: ClusterConfiguration
+          networking:
+            podSubnet: 192.168.0.0/16
+        dest: /tmp/kubeadm-config.yaml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Initialize Kubernetes cluster
+      command: kubeadm init --config /tmp/kubeadm-config.yaml
+      register: kubeadm_output
+      ignore_errors: yes
       when: inventory_hostname == groups['k8s_master'][0]
+
+  #  - name: Initialize the Kubernetes master
+  #    command: kubeadm init --pod-network-cidr=192.168.0.0/16
+  #    when: inventory_hostname == groups['k8s_master'][0]
 
     - name: Generate kubeadm join token on master
       shell: kubeadm token create --print-join-command
