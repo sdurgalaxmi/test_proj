@@ -1,0 +1,23 @@
+- name: Install pipx and python-kubernetes
+  hosts: all
+  tasks:
+    - name: Ensure pip is installed
+      apt:
+        name: python3-pip
+        state: present
+    - name: Install pipx
+      pip:
+        name: pipx
+        state: latest
+    - name: Ensure pipx is in the PATH
+      command: python3 -m pipx ensurepath
+      args:
+        warn: false
+    - name: Install python-kubernetes via pipx
+      command: pipx install kubernetes
+    - name: Verify installation
+      command: pipx list
+      register: pipx_output
+    - name: Display pipx list
+      debug:
+        var: pipx_output.stdout_lines
