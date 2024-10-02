@@ -126,6 +126,20 @@
   #    command: kubeadm init --pod-network-cidr=192.168.0.0/16
   #    when: inventory_hostname == groups['k8s_master'][0]
 
+  
+    - name: Extract token from kubeadm_output
+      set_fact:
+        kubeadm_token: "{{ kubeadm_output.stdout | regex_search('token: ([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
+      when: kubeadm_output.stdout is defined
+
+    - name: Extract CA cert hash from kubeadm_output
+      set_fact:
+        kubeadm_cert_hash: "{{ kubeadm_output.stdout | regex_search('discovery-token-ca-cert-hash sha256:([a-f0-9]+)') | first }}"
+      when: kubeadm_output.stdout is defined
+
+    - debug:
+        msg: "Kubeadm Token: {{ kubeadm_token }}, Kubeadm Cert Hash: {{ kubeadm_cert_hash }}"
+
     - name: Generate kubeadm join token on master
       shell: kubeadm token create --print-join-command
       register: kubeadm_join_cmd
