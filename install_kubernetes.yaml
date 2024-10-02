@@ -34,9 +34,15 @@
 
     - name: Download cri-dockerd
       #command: wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.14/cri-dockerd-0.3.14.amd64.tgz
-      shell: sudo tar -xvf cri-dockerd-0.3.14.amd64.tgz
-      shell: cd cri-dockerd
-      shell: sudo install -o root -g root -m 0755 cri-dockerd /usr/local/bin/cri-dockerd
+      shell: |
+        tar -xvf cri-dockerd-0.3.14.amd64.tgz
+      shell: |
+        cd cri-dockerd
+      shell: |
+        sudo install -o root -g root -m 0755 cri-dockerd /usr/local/bin/cri-dockerd
+      #shell: sudo tar -xvf cri-dockerd-0.3.14.amd64.tgz
+      #shell: cd cri-dockerd
+      #shell: sudo install -o root -g root -m 0755 cri-dockerd /usr/local/bin/cri-dockerd
       
 
     - name: Download cri-dockerd systemd packages
