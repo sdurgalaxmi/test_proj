@@ -35,7 +35,9 @@
     - name: Download cri-dockerd
       #command: wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.14/cri-dockerd-0.3.14.amd64.tgz
       shell: |
-        tar -xvf cri-dockerd-0.3.14.amd64.tgz
+        cd /root
+      shell: |
+        sudo tar -xvf cri-dockerd-0.3.14.amd64.tgz
       shell: |
         cd cri-dockerd
       shell: |
