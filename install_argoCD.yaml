@@ -21,7 +21,7 @@
             name: argocd-server
             namespace: argocd
           spec:
-            replicas: 1  # Set to 2 for high availability and load balancing
+            replicas: 2  # Set to 2 for high availability and load balancing
             selector:
               matchLabels:
                 app: argocd-server
@@ -65,9 +65,14 @@
         name: argocd-server
       register: deployment_info
       #until: deployment_info.resources[0].status.readyReplicas == 2
-      until: deployment_info.resources[0].status is defined and deployment_info.resources[0].status.readyReplicas == 1
+      #until: deployment_info.resources[0].status is defined and deployment_info.resources[0].status.readyReplicas == 2
+      until: (deployment_info.resources | length > 0) and (deployment_info.resources[0].status is defined) and (deployment_info.resources[0].status.readyReplicas | default(0) == 2)
       retries: 10
       delay: 5
+
+    - name: Debug deployment info
+      debug:
+        var: deployment_info
       
     - name: Get initial admin password
       kubernetes.core.k8s_exec:
