@@ -27,10 +27,13 @@
         enabled: yes
         state: started
 
-    - name: Download cri-dockerd package
+    - name: Download cri-dockerd packages
       get_url:
         url: https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.14/cri-dockerd-0.3.14.amd64.tgz
         dest: /root/cri-dockerd-0.3.14.amd64.tgz
+      get_url:
+        url: https://github.com/Mirantis/cri-dockerd/archive/refs/tags/v0.3.14.tar.gz
+        dest: /root/v0.3.14.tar.gz
 
     - name: Download cri-dockerd
       #command: wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.14/cri-dockerd-0.3.14.amd64.tgz
@@ -39,10 +42,10 @@
       shell: sudo install -o root -g root -m 0755 cri-dockerd /usr/local/bin/cri-dockerd
       args:
         chdir: /root
-
+        
     - name: Download and set up cri-dockerd systemd service
-      shell: cd ..
-      command: wget https://github.com/Mirantis/cri-dockerd/archive/refs/tags/v0.3.14.tar.gz
+      shell: cd /root
+      #command: wget https://github.com/Mirantis/cri-dockerd/archive/refs/tags/v0.3.14.tar.gz
       shell: tar -xvf v0.3.14.tar.gz
       shell: cd cri-dockerd-0.3.14
       shell: sudo cp packaging/systemd/* /etc/systemd/system
