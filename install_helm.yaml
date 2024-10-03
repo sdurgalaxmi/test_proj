@@ -1,0 +1,10 @@
+- name: Install Helm on Master Node
+  hosts: ks8_master
+  gather_facts: true
+  become: true  
+  tasks:
+  
+  - name: Running curl and chmod and execute
+    shell: curl -fsSL -o /root/get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    shell: chmod 700 /root/get_helm.sh
+    shell: ./root/get_helm.sh
