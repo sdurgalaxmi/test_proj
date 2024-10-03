@@ -134,7 +134,7 @@
     
 
     - name: Initialize Kubernetes cluster
-      command: kubeadm init --config /root/kubeadm-config.yaml
+      command: kubeadm init --config=/root/kubeadm-config.yaml
       register: kubeadm_output
       ignore_errors: yes
       when: inventory_hostname == groups['k8s_master'][0]
