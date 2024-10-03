@@ -26,12 +26,21 @@
         name: docker
         enabled: yes
         state: started
+        
+    - name: Download cri-dockerd packages
+      get_url:
+        url: https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.14/cri-dockerd-0.3.14.amd64.tgz
+        dest: /root/cri-dockerd-0.3.14.amd64.tgz
+        
+    - name: Download cri-dockerd systemd packages
+      get_url:
+        url: https://github.com/Mirantis/cri-dockerd/archive/refs/tags/v0.3.14.tar.gz
+        dest: /root/v0.3.14.tar.gz
 
     - name: Ensure the target directory exists
       file:
         path: /root/crisoc/
         state: directory
-
 
     - name: Extract cri-dockerd tar file
       unarchive:
