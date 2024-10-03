@@ -185,8 +185,8 @@
         - name: Copy admin.conf to .kube/config
           command: cp -i /etc/kubernetes/admin.conf ~/.kube/config
           when: inventory_hostname == groups['k8s_master'][0]
-          args:
-            removes: ~/.kube/config
+          #args:
+            #removes: ~/.kube/config
 
         - name: Change ownership of .kube/config
           shell: chown $(id -u):$(id -g) ~/.kube/config
