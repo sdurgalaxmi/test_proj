@@ -145,6 +145,7 @@
       copy:
         content: "{{ kubeadm_output.stdout }}"
         dest: /root/cluster_initialized.txt
+      when: inventory_hostname == groups['k8s_master'][0]
 
     - name: Slurp the file from the remote machine
       slurp:
