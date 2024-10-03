@@ -1,0 +1,45 @@
+- name: Install Latest Docker and Kubernetes with Calico
+  hosts: all
+  gather_facts: true
+  become: true  
+  tasks:
+
+    - name: Slurp the file from the remote machine
+      slurp:
+        src: /root/cluster_initialized.txt
+      register: file_content
+      when: inventory_hostname == groups['k8s_master'][0]
+
+    - name: Decode the base64 content
+      set_fact:
+        decoded_content: "{{ file_content.content | b64decode }}"
+      when: file_content is defined and inventory_hostname == groups['k8s_master'][0]
+
+    - name: Extract token from decoded content
+      set_fact:
+        kubeadm_token: "{{ decoded_content | regex_search('--token\\s+([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
+        kubeadm_cert_hash: "{{ decoded_content | regex_search('--discovery-token-ca-cert-hash\\s+sha256:([a-f0-9]+)') | first }}"
+      when: decoded_content is defined and inventory_hostname == groups['k8s_master'][0]
+
+    - name: Debug extracted token
+      debug:
+        #msg: "Extracted Kubeadm Token: {{ kubeadm_token }}"
+        msg: "Extracted Token: {{ kubeadm_token }}, Extracted Cert Hash: {{ kubeadm_cert_hash }}"
+      when: kubeadm_token is defined and inventory_hostname == groups['k8s_master'][0]
+
+    - name: Join worker nodes to the cluster
+      command: >
+        kubeadm join {{ hostvars[groups['k8s_master'][0]].inventory_hostname }}:6443
+        --token {{ kubeadm_token }}
+        --discovery-token-ca-cert-hash {{ kubeadm_cert_hash }}
+        --cri-socket unix:///var/run/cri-dockerd.sock
+      when: inventory_hostname in groups['k8s_worker'] and kubeadm_token is defined and kubeadm_cert_hash is defined
+
+    - name: Join worker nodes to the cluster
+       command: kubeadm join {{ hostvars[groups['k8s_master'][0]].inventory_hostname }}:6443 --token {{ hostvars[groups['k8s_master'][0]].kubeadm_token }} --discovery-token-ca-cert-hash {{ hostvars[groups['k8s_master'][0]].kubeadm_cert_hash }} --cri-socket unix:///var/run/cri-dockerd.sock
+       when: inventory_hostname in groups['k8s_worker']
+    
+  post_tasks:
+    - name: Show nodes in the cluster
+      command: kubectl get nodes
+      when: inventory_hostname == groups['k8s_master'][0]
