@@ -8,13 +8,15 @@
       set_fact:
         #kubeadm_token: "{{ kubeadm_output.stdout | regex_search('token: ([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
         kubeadm_token: "{{ lookup('file', '/root/cluster_initialized.txt') | regex_search('token: ([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
-      when: kubeadm_output.stdout is defined
+      #when: kubeadm_output.stdout is defined
+      when: inventory_hostname == groups['k8s_master'][0]
 
     - name: Extract CA cert hash from kubeadm_output
       set_fact:
         #kubeadm_cert_hash: "{{ kubeadm_output.stdout | regex_search('discovery-token-ca-cert-hash sha256:([a-f0-9]+)') | first }}"
         kubeadm_cert_hash: "{{ lookup('file', '/root/cluster_initialized.txt') | regex_search('discovery-token-ca-cert-hash sha256:([a-f0-9]+)') | first }}"
-      when: kubeadm_output.stdout is defined
+      #when: kubeadm_output.stdout is defined
+      when: inventory_hostname == groups['k8s_master'][0]
 
     - debug:
         msg: "Kubeadm Token: {{ kubeadm_token }}, Kubeadm Cert Hash: {{ kubeadm_cert_hash }}"
