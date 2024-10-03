@@ -147,6 +147,32 @@
         dest: /root/cluster_initialized.txt
       when: inventory_hostname == groups['k8s_master'][0]
 
+    - name: Read the kubeadm join command from file
+      slurp:
+        src: /root/cluster_initialized.txt
+      register: kubeadm_join_file
+      when: inventory_hostname == groups['k8s_master'][0]
+
+    - name: Convert file content from base64 to text
+      set_fact:
+        kubeadm_join_command: "{{ kubeadm_join_file.content | b64decode }}"
+      when: inventory_hostname == groups['k8s_master'][0]
+
+    - name: Extract the token from the kubeadm join command
+      set_fact:
+        kubeadm_token: "{{ (kubeadm_join_command | regex_search('--token ([a-zA-Z0-9\\.\\-]+)', '\\1')) | first }}"
+      when: kubeadm_join_command is defined and inventory_hostname == groups['k8s_master'][0]
+
+    - name: Extract the hash from the kubeadm join command
+      set_fact:
+        kubeadm_cert_hash: "{{ (kubeadm_join_command | regex_search('--discovery-token-ca-cert-hash sha256:([a-f0-9]+)', '\\1')) | first }}"
+      when: kubeadm_join_command is defined and inventory_hostname == groups['k8s_master'][0]
+
+    - name: Debug the extracted token and hash
+      debug:
+        msg: "Extracted Token: {{ kubeadm_token }}, Extracted Cert Hash: sha256:{{ kubeadm_cert_hash }}"
+      when: kubeadm_token is defined and kubeadm_cert_hash and inventory_hostname == groups['k8s_master'][0]
+
     - name: Slurp the file from the remote machine
       slurp:
         src: /root/cluster_initialized.txt
