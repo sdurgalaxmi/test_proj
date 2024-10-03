@@ -4,24 +4,26 @@
   become: true  
   tasks:
 
-    - name: Slurp the cluster_initialized.txt file from the remote machine
-      slurp:
-        src: /root/cluster_initialized.txt
-      register: kubeadm_file_content
-      when: inventory_hostname == groups['k8s_master'][0]
+     - name: Slurp the file from the remote machine
+       slurp:
+        src: /root/cluster_initialized.txt  # Replace with the actual file path
+       register: file_content
+       when: inventory_hostname == groups['k8s_master'][0]
 
-    - name: Decode the base64 content and extract the token and cert hash
+    - name: Decode the base64 content and extract values
       set_fact:
-        kubeadm_token: "{{ kubeadm_file_content.content | b64decode | regex_search('token: ([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
-        kubeadm_cert_hash: "{{ kubeadm_file_content.content | b64decode | regex_search('discovery-token-ca-cert-hash sha256:([a-f0-9]+)') | first }}"
-      when: kubeadm_file_content is defined and inventory_hostname == groups['k8s_master'][0]
-
-    - debug:
-        msg: "Kubeadm Token: {{ kubeadm_token }}, Kubeadm Cert Hash: {{ kubeadm_cert_hash }}"
-      when: inventory_hostname == groups['k8s_master'][0]
+        kubeadm_token: "{{ decoded_content | regex_search('--token\\s+([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
+        kubeadm_cert_hash: "{{ decoded_content | regex_search('--discovery-token-ca-cert-hash\\s+sha256:([a-f0-9]+)') | first }}"
+      vars:
+        decoded_content: "{{ file_content.content | b64decode }}"
+      when: file_content is defined and inventory_hostname == groups['k8s_master'][0]
         
+    - name: Debug extracted values
+      debug:
+        msg: "Extracted Token: {{ kubeadm_token }}, Extracted Cert Hash: {{ kubeadm_cert_hash }}"
+      when: kubeadm_token is defined and kubeadm_cert_hash is defined and inventory_hostname == groups['k8s_master'][0]
 
-
+    
     - name: Set up kubectl for the regular user
       block:
         - name: Create .kube directory
@@ -35,9 +37,8 @@
         - name: Copy admin.conf to .kube/config
           command: cp -i /etc/kubernetes/admin.conf ~/.kube/config
           when: inventory_hostname == groups['k8s_master'][0]
-
-         # args:
-         #   removes: ~/.kube/config
+          args:
+            removes: ~/.kube/config
 
         - name: Change ownership of .kube/config
           shell: chown $(id -u):$(id -g) ~/.kube/config
