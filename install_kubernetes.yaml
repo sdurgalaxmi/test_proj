@@ -194,7 +194,7 @@
 
 
     - name: Install Calico Pod Network Add-On
-      command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+      command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
       when: inventory_hostname == groups['k8s_master'][0]
 
     - name: Join worker nodes to the cluster
