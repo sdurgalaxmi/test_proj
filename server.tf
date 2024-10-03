@@ -74,6 +74,13 @@ resource "aws_security_group" "k8s_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"  # All protocols
+    cidr_blocks = ["0.0.0.0/0"]  # Allow traffic from any IP
+  }
+
    # Optional: Add egress rules to allow outbound traffic
   egress {
     from_port   = 0
