@@ -146,24 +146,30 @@
         group: root
         mode: '0644'
 
-    
+   # - name: Initialize Kubernetes cluster
+    #  command: kubeadm init --config=/root/kubeadm-config.yaml
+     # register: kubeadm_output
+     # ignore_errors: yes
+     # when: inventory_hostname == groups['k8s_master'][0]
 
     - name: Initialize Kubernetes cluster
-      command: kubeadm init --config=/root/kubeadm-config.yaml
-      register: kubeadm_output
-      ignore_errors: yes
+      command: kubeadm init --config=/root/kubeadm-config.yaml >> /root/cluster_initialized.txt
+      #register: kubeadm_output
+      #ignore_errors: yes
       when: inventory_hostname == groups['k8s_master'][0]
 
   
     - name: Extract token from kubeadm_output
       set_fact:
-        kubeadm_token: "{{ kubeadm_output.stdout | regex_search('token: ([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
-      when: kubeadm_output.stdout is defined
+        #kubeadm_token: "{{ kubeadm_output.stdout | regex_search('token: ([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
+        kubeadm_token: "{{ lookup('file', 'cluster_initialized.txt') | regex_search('token: ([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
+      #when: kubeadm_output.stdout is defined
 
     - name: Extract CA cert hash from kubeadm_output
       set_fact:
-        kubeadm_cert_hash: "{{ kubeadm_output.stdout | regex_search('discovery-token-ca-cert-hash sha256:([a-f0-9]+)') | first }}"
-      when: kubeadm_output.stdout is defined
+        #kubeadm_cert_hash: "{{ kubeadm_output.stdout | regex_search('discovery-token-ca-cert-hash sha256:([a-f0-9]+)') | first }}"
+        kubeadm_cert_hash: "{{ lookup('file', 'cluster_initialized.txt') | regex_search('discovery-token-ca-cert-hash sha256:([a-f0-9]+)') | first }}"
+      #when: kubeadm_output.stdout is defined
 
     - debug:
         msg: "Kubeadm Token: {{ kubeadm_token }}, Kubeadm Cert Hash: {{ kubeadm_cert_hash }}"
