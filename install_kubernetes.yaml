@@ -146,17 +146,28 @@
         group: root
         mode: '0644'
 
+    - name: Initialize Kubernetes cluster
+      command: kubeadm init --config=/root/kubeadm-config.yaml
+      register: kubeadm_output
+      when: inventory_hostname == groups['k8s_master'][0]
+
+    - name: Write kubeadm output to file
+      copy:
+        content: "{{ kubeadm_output.stdout }}"
+        dest: /root/cluster_initialized.txt
+      when: inventory_hostname == groups['k8s_master'][0]
+
    # - name: Initialize Kubernetes cluster
     #  command: kubeadm init --config=/root/kubeadm-config.yaml
      # register: kubeadm_output
      # ignore_errors: yes
      # when: inventory_hostname == groups['k8s_master'][0]
 
-    - name: Initialize Kubernetes cluster
-      command: kubeadm init --config=/root/kubeadm-config.yaml >> /root/cluster_initialized.txt
-      #register: kubeadm_output
-      #ignore_errors: yes
-      when: inventory_hostname == groups['k8s_master'][0]
+   # - name: Initialize Kubernetes cluster
+   #   command: kubeadm init --config=/root/kubeadm-config.yaml >> /root/cluster_initialized.txt
+   #   #register: kubeadm_output
+   #   #ignore_errors: yes
+   #   when: inventory_hostname == groups['k8s_master'][0]
 
   
     - name: Extract token from kubeadm_output
