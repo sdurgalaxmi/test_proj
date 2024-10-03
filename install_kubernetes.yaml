@@ -131,6 +131,8 @@
         group: root
         mode: '0644'
 
+    
+
     - name: Initialize Kubernetes cluster
       command: kubeadm init --config /root/kubeadm-config.yaml
       register: kubeadm_output
