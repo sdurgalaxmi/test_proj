@@ -10,13 +10,15 @@
        register: file_content
        when: inventory_hostname == groups['k8s_master'][0]
 
-    - name: Decode the base64 content and extract values
+   
+    - name: Decode the base64 content and extract the token and cert hash
       set_fact:
         kubeadm_token: "{{ decoded_content | regex_search('--token\\s+([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
         kubeadm_cert_hash: "{{ decoded_content | regex_search('--discovery-token-ca-cert-hash\\s+sha256:([a-f0-9]+)') | first }}"
       vars:
         decoded_content: "{{ file_content.content | b64decode }}"
       when: file_content is defined and inventory_hostname == groups['k8s_master'][0]
+
         
     - name: Debug extracted values
       debug:
