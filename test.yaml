@@ -3,23 +3,23 @@
   gather_facts: true
   become: true  
   tasks:
-      
-    - name: Extract token from kubeadm_output
-      set_fact:
-        #kubeadm_token: "{{ kubeadm_output.stdout | regex_search('token: ([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
-        kubeadm_token: "{{ lookup('file', '/root/cluster_initialized.txt') | regex_search('token: ([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
-      #when: kubeadm_output.stdout is defined
+
+    - name: Slurp the cluster_initialized.txt file from the remote machine
+      slurp:
+        src: /root/cluster_initialized.txt
+      register: kubeadm_file_content
       when: inventory_hostname == groups['k8s_master'][0]
 
-    - name: Extract CA cert hash from kubeadm_output
+    - name: Decode the base64 content and extract the token and cert hash
       set_fact:
-        #kubeadm_cert_hash: "{{ kubeadm_output.stdout | regex_search('discovery-token-ca-cert-hash sha256:([a-f0-9]+)') | first }}"
-        kubeadm_cert_hash: "{{ lookup('file', '/root/cluster_initialized.txt') | regex_search('discovery-token-ca-cert-hash sha256:([a-f0-9]+)') | first }}"
-      #when: kubeadm_output.stdout is defined
-      when: inventory_hostname == groups['k8s_master'][0]
+        kubeadm_token: "{{ kubeadm_file_content.content | b64decode | regex_search('token: ([a-z0-9]{6}\\.[a-z0-9]{16})') | first }}"
+        kubeadm_cert_hash: "{{ kubeadm_file_content.content | b64decode | regex_search('discovery-token-ca-cert-hash sha256:([a-f0-9]+)') | first }}"
+      when: kubeadm_file_content is defined and inventory_hostname == groups['k8s_master'][0]
 
     - debug:
         msg: "Kubeadm Token: {{ kubeadm_token }}, Kubeadm Cert Hash: {{ kubeadm_cert_hash }}"
+      when: inventory_hostname == groups['k8s_master'][0]
+        
 
 
     - name: Set up kubectl for the regular user
